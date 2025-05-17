@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webfix - Recommendations</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .top-bar {
+            background-color: #003366;
+            padding: 20px 0;
+        }
+
+        .top-bar img {
+            width: 120px;
+        }
+
+        .title {
+            font-size: 26px;
+            color: #003366;
+            margin: 20px 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .section h2 {
+            color: #003366;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <img src="{{ url_for('static', filename='web1.png') }}" alt="Webfix Logo">
+    </div>
+
+    <h1 class="title">Website Improvement Recommendations</h1>
+
+    <div class="container" id="recommendations-container">
+        <!-- Recommendations will be injected here -->
+    </div>
+
+    <script>
+        const data = JSON.parse(localStorage.getItem("webfix_analysis"));
+
+        const container = document.getElementById("recommendations-container");
+
+        if (!data) {
+            container.innerHTML = "<p>No analysis data found. Please analyze a website first.</p>";
+        } else {
+            const recommendations = [];
+
+            // Performance
+            if (data.performance.load_time > 3) {
+                recommendations.push("Consider optimizing your page load time. Current load time is " + data.performance.load_time + " seconds.");
+            }
+            if (data.performance.page_size_kb > 2000) {
+                recommendations.push("Reduce page size by compressing images or minifying resources.");
+            }
+
+            // Security
+            if (!data.security.uses_https) {
+                recommendations.push("Your website is not using HTTPS. Enable SSL/TLS to secure data.");
+            }
+            if (!data.security.ssl_valid) {
+                recommendations.push("The SSL certificate appears invalid or expired. Renew or configure it properly.");
+            }
+            if (!data.security.security_headers["Content-Security-Policy"]) {
+                recommendations.push("Add a Content-Security-Policy header to protect against XSS attacks.");
+            }
+            if (!data.security.security_headers["X-Frame-Options"]) {
+                recommendations.push("Add X-Frame-Options header to prevent clickjacking.");
+            }
+
+            // SEO
+            if (!data.seo.meta_description) {
+                recommendations.push("Add a meta description to improve your website's search visibility.");
+            }
+            if (data.seo.h1_tags_count === 0) {
+                recommendations.push("Include at least one H1 tag for SEO structure.");
+            }
+            if (data.seo.images_missing_alt > 0) {
+                recommendations.push(`${data.seo.images_missing_alt} images are missing alt attributes. Add them for better accessibility and SEO.`);
+            }
+
+            if (recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="section">
+                        <h2>✅ Everything looks great!</h2>
+                        <p>No major issues were detected. Keep up the good work!</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="section">
+                        <h2>🔧 Recommended Improvements</h2>
+                        <ul>
+                            ${recommendations.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+    </script>
+
+</body>
+</html>

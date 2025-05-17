@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webfix - Website Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .top-bar {
+            background-color: #003366;
+            padding: 20px 0;
+        }
+
+        .top-bar img {
+            width: 120px;
+        }
+
+        .title {
+            font-size: 28px;
+            color: #003366;
+            margin: 20px 0;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 60%;
+            max-width: 500px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005599;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .section {
+            background-color: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .section h2 {
+            color: #003366;
+        }
+
+        .date {
+            margin-top: 20px;
+            color: gray;
+        }
+
+        .view-recommendations {
+            margin-top: 30px;
+        }
+
+        .view-recommendations a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #003366;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .view-recommendations a:hover {
+            background-color: #005599;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <img src="{{ url_for('static', filename='web1.png') }}" alt="Webfix Logo">
+    </div>
+
+    <h1 class="title">Website Analyzer</h1>
+
+    <div class="container">
+        <div class="form-group">
+            <input type="text" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)">
+            <button onclick="analyze()">Analyze</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let intervalId = null;
+    
+        function analyze(manual = true) {
+            const url = document.getElementById("urlInput").value;
+            if (!url.startsWith("http")) {
+                if (manual) alert("Please enter a valid URL including http or https.");
+                return;
+            }
+    
+            fetch("/analyze", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                localStorage.setItem("webfix_analysis", JSON.stringify(data));
+    
+                const resultDiv = document.getElementById("results");
+                resultDiv.innerHTML = `
+                    <div class="section">
+                        <h2>🔹 Performance Analysis</h2>
+                        <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
+                        <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
+                        <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
+                    </div>
+    
+                    <div class="section">
+                        <h2>🔒 Security Analysis</h2>
+                        <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
+                        <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
+                        <p><strong>Security Headers:</strong></p>
+                        <ul>
+                            ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val}</li>`).join("")}
+                        </ul>
+                    </div>
+    
+                    <div class="section">
+                        <h2>🔍 SEO Analysis</h2>
+                        <ul>
+                            <li id="seo-title"></li>
+                            <li id="seo-description"></li>
+                            <li id="h1-count"></li>
+                            <li id="missing-alt"></li>
+                        </ul>
+                    </div>
+    
+                    <div class="date">📅 Analysis Date: ${data.date_now}</div>
+    
+                    <div class="view-recommendations">
+                        <a href="/recommendations" target="_blank">View Recommendations</a>
+                    </div>
+                `;
+    
+                // ✅ Inject SEO data into <li> tags
+                document.getElementById("seo-title").innerText = data.seo.has_title
+                    ? "✔ The website has a title tag."
+                    : "✖ No title tag found.";
+    
+                document.getElementById("seo-description").innerText = data.seo.has_meta_description
+                    ? "✔ Meta description is present."
+                    : "✖ Meta description is missing.";
+    
+                document.getElementById("h1-count").innerText = `📝 Number of <h1> tags found: ${data.seo.h1_tags_count}`;
+    
+                document.getElementById("missing-alt").innerText = `🖼️ Images without alt text: ${data.seo.images_missing_alt}`;
+    
+                if (manual && !intervalId) {
+                    intervalId = setInterval(() => {
+                        analyze(false);
+                    }, 60000);
+                }
+            });
+        }
+    </script>
+    
+<div class="view-recommendations" style="margin-top: 15px;">
+    <a href="/report" target="_blank">Download PDF Report</a>
+</div>
+
+    <div style="margin-top: 40px; font-size: 14px; color: gray; text-align: center;">
+        Report prepared by <strong style="color:#003366;">Webfix</strong>
+    </div>
+    
+</body>
+</html>

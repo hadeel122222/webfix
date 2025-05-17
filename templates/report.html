@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webfix Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #ffffff;
+            color: #000;
+        }
+
+        h1 {
+            color: #003366;
+            text-align: center;
+        }
+
+        .section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .signature {
+            margin-top: 50px;
+            text-align: center;
+            font-style: italic;
+            color: gray;
+        }
+
+        #download-btn {
+            margin: 20px auto;
+            display: block;
+            padding: 10px 20px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #download-btn:hover {
+            background-color: #005599;
+        }
+    </style>
+</head>
+<body>
+    <div id="report-content">
+        <h1>Website Analysis Report</h1>
+
+        <div id="performance" class="section"></div>
+        <div id="security" class="section"></div>
+        <div id="seo" class="section"></div>
+        <div class="section" id="date"></div>
+
+        <div class="signature">
+            Report prepared by <strong style="color:#003366;">Webfix</strong>
+        </div>
+    </div>
+
+    <button id="download-btn">Download PDF</button>
+
+    <script>
+        // Load analysis data from localStorage
+        const data = JSON.parse(localStorage.getItem("webfix_analysis"));
+
+        if (data) {
+            document.getElementById("performance").innerHTML = `
+                <h2>🔹 Performance Analysis</h2>
+                <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
+                <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
+                <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
+            `;
+
+            document.getElementById("security").innerHTML = `
+                <h2>🔒 Security Analysis</h2>
+                <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
+                <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
+                <p><strong>Security Headers:</strong></p>
+                <ul>
+                    ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val}</li>`).join("")}
+                </ul>
+            `;
+
+            document.getElementById("seo").innerHTML = `
+                <h2>🔍 SEO Analysis</h2>
+                <ul>
+                    <li>${data.seo.has_title ? "✔ The website has a title tag." : "✖ No title tag found."}</li>
+                    <li>${data.seo.has_meta_description ? "✔ Meta description is present." : "✖ Meta description is missing."}</li>
+                    <li>📝 Number of &lt;h1&gt; tags: ${data.seo.h1_tags_count}</li>
+                    <li>🖼️ Images without alt text: ${data.seo.images_missing_alt}</li>
+                </ul>
+            `;
+
+            document.getElementById("date").innerHTML = `
+                📅 Analysis Date: ${data.date_now}
+            `;
+        }
+
+        document.getElementById("download-btn").addEventListener("click", () => {
+            const element = document.getElementById("report-content");
+            html2pdf().from(element).set({
+                margin: 1,
+                filename: 'Webfix_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).save();
+        });
+    </script>
+</body>
+</html>
