@@ -132,8 +132,9 @@
         })
         .then(response => response.json())
         .then(data => { 
+        
             localStorage.setItem("webfix_analysis", JSON.stringify(data));
-            sessionStorage.setItem("webfix_report", JSON.stringify(data));
+
 
             const resultDiv = document.getElementById("results");
             resultDiv.innerHTML = `
@@ -168,7 +169,7 @@
 
                 <div class="view-recommendations">
                     <a href="/recommendations" target="_blank">View Recommendations</a>
-                    <a href="/report" target="_blank" style="margin-left: 15px;">Download PDF Report</a>
+                    <a href="/report" style="margin-left: 15px;">Download PDF Report</a>
                 </div>
             `;
 
