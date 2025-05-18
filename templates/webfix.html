@@ -183,12 +183,10 @@
             document.getElementById("missing-alt").innerText = `🖼️ Images without alt text: ${data.seo.images_missing_alt}`;
 
             // ✅ أضف زر تحميل التقرير
-            const reportBtn = document.createElement("a");
-            reportBtn.href = "/report";
-            reportBtn.target = "_blank";
-            reportBtn.innerText = "Download PDF Report";
-            reportBtn.className = "report-link";
-            document.querySelector(".view-recommendations").appendChild(reportBtn);
+         document.querySelector(".view-recommendations").innerHTML = `
+    <button onclick="window.open('/report', '_blank')">Download PDF Report</button>
+`;
+
 
             if (manual && !intervalId) {
                 intervalId = setInterval(() => {
