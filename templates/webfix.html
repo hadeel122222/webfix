@@ -131,7 +131,7 @@
         })
         .then(response => response.json())
         .then(data => {
-            localStorage.setItem("webfix_analysis", JSON.stringify(data));
+            
             sessionStorage.setItem("webfix_report", JSON.stringify(data)); // ✅ هنا مكانه الصح
 
             const resultDiv = document.getElementById("results");
