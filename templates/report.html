@@ -106,15 +106,20 @@
         }
 
         document.getElementById("download-btn").addEventListener("click", () => {
-            const element = document.getElementById("report-content");
-            html2pdf().from(element).set({
-                margin: 1,
-                filename: 'Webfix_Report.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            }).save();
-        });
+    const element = document.getElementById("report-content");
+
+    // ✅ تأخير بسيط عشان يضمن تحميل كل البيانات
+    setTimeout(() => {
+        html2pdf().from(element).set({
+            margin: 1,
+            filename: 'Webfix_Report.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }).save();
+    }, 500); // نصف ثانية تأخير
+});
+
     </script>
 </body>
 </html>
