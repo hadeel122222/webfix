@@ -64,8 +64,8 @@
     <button id="download-btn">Download PDF</button>
 
     <script>
-        // Load analysis data from localStorage
-        const data = JSON.parse(localStorage.getItem("webfix_analysis"));
+        // ✅ استخدم sessionStorage بدل localStorage
+        const data = JSON.parse(sessionStorage.getItem("webfix_report"));
 
         if (data) {
             document.getElementById("performance").innerHTML = `
@@ -97,6 +97,11 @@
 
             document.getElementById("date").innerHTML = `
                 📅 Analysis Date: ${data.date_now}
+            `;
+        } else {
+            document.getElementById("report-content").innerHTML = `
+                <h2 style="text-align:center;color:#c00;">No report data found.</h2>
+                <p style="text-align:center;">Please analyze a website first.</p>
             `;
         }
 
