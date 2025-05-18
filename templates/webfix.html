@@ -132,7 +132,8 @@
         .then(response => response.json())
         .then(data => {
             
-            sessionStorage.setItem("webfix_report", JSON.stringify(data)); // ✅ هنا مكانه الصح
+            localStorage.setItem("webfix_analysis", JSON.stringify(data));
+
 
             const resultDiv = document.getElementById("results");
             resultDiv.innerHTML = `
