@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -112,6 +112,7 @@
 
         <div id="results"></div>
     </div>
+
 <script>
     let intervalId = null;
 
@@ -132,9 +133,7 @@
         .then(response => response.json())
         .then(data => { 
             localStorage.setItem("webfix_analysis", JSON.stringify(data));
-         
-
-
+            sessionStorage.setItem("webfix_report", JSON.stringify(data));
 
             const resultDiv = document.getElementById("results");
             resultDiv.innerHTML = `
@@ -169,10 +168,10 @@
 
                 <div class="view-recommendations">
                     <a href="/recommendations" target="_blank">View Recommendations</a>
+                    <a href="/report" target="_blank" style="margin-left: 15px;">Download PDF Report</a>
                 </div>
             `;
 
-            // ✅ Inject SEO results
             document.getElementById("seo-title").innerText = data.seo.has_title
                 ? "✔ The website has a title tag."
                 : "✖ No title tag found.";
@@ -182,12 +181,6 @@
             document.getElementById("h1-count").innerText = `📝 Number of <h1> tags found: ${data.seo.h1_tags_count}`;
             document.getElementById("missing-alt").innerText = `🖼️ Images without alt text: ${data.seo.images_missing_alt}`;
 
-            // ✅ أضف زر تحميل التقرير
-         document.querySelector(".view-recommendations").innerHTML = `
-    <button onclick="window.open('/report', '_blank')">Download PDF Report</button>
-`;
-
-
             if (manual && !intervalId) {
                 intervalId = setInterval(() => {
                     analyze(false);
@@ -196,14 +189,13 @@
         });
     }
 </script>
-    
+
 <div class="view-recommendations" style="margin-top: 15px;">
-    
 </div>
 
-    <div style="margin-top: 40px; font-size: 14px; color: gray; text-align: center;">
-        Report prepared by <strong style="color:#003366;">Webfix</strong>
-    </div>
-    
+<div style="margin-top: 40px; font-size: 14px; color: gray; text-align: center;">
+    Report prepared by <strong style="color:#003366;">Webfix</strong>
+</div>
+
 </body>
 </html>

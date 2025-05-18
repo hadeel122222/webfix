@@ -64,7 +64,8 @@
     <button id="download-btn">Download PDF</button>
 
     <script>
-      const data = JSON.parse(localStorage.getItem("webfix_analysis"));
+      const data = JSON.parse(sessionStorage.getItem("webfix_report")) || JSON.parse(localStorage.getItem("webfix_analysis"));
+
 
 
         if (data) {
