@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Webfix - Website Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         body {
@@ -143,7 +143,7 @@ function analyze(manual = true) {
         body: JSON.stringify({ url: url })
     })
     .then(response => response.json())
-    .then(data => { 
+    .then(data => {
         localStorage.setItem("webfix_analysis", JSON.stringify(data));
         sessionStorage.setItem("webfix_report", JSON.stringify(data));
 
@@ -180,11 +180,9 @@ function analyze(manual = true) {
 
             <div class="view-recommendations">
                 <a href="/recommendations" target="_blank">View Recommendations</a>
-                <button id="pdf-button">Download PDF Report</button>
-
+                <button onclick="downloadPDF()">Download PDF Report</button>
             </div>
         `;
-document.getElementById("pdf-button").addEventListener("click", downloadPDF);
 
         document.getElementById("seo-title").innerText = data.seo.has_title
             ? "✔ The website has a title tag."
@@ -203,7 +201,6 @@ document.getElementById("pdf-button").addEventListener("click", downloadPDF);
     });
 }
 
-// ✅ هذا هو زر تحميل PDF الكامل والمضمون
 function downloadPDF() {
     const data = JSON.parse(localStorage.getItem("webfix_analysis"));
     if (!data) {
@@ -212,6 +209,9 @@ function downloadPDF() {
     }
 
     const element = document.createElement("div");
+    element.style.padding = "30px";
+    element.style.backgroundColor = "#fff";
+
     element.innerHTML = `
         <h1 style="text-align:center;color:#003366;">Website Analysis Report</h1>
 
@@ -251,15 +251,17 @@ function downloadPDF() {
         </div>
     `;
 
-   html2pdf().set({
-    margin:       [0.5, 0.5, 0.5, 0.5],  // أعلى، يمين، أسفل، يسار
-    filename:     'Webfix_Report.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 3, useCORS: true },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // تمنع القص بين الأقسام
-}).from(element).save();
-
+    document.body.appendChild(element); // ضروري لظهور العنصر
+    html2pdf().set({
+        margin: 0.5,
+        filename: 'Webfix_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(element).save().then(() => {
+        document.body.removeChild(element);
+    });
 }
 </script>
 
