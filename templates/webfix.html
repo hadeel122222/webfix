@@ -1,9 +1,11 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Webfix - Website Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -82,16 +84,20 @@
             margin-top: 30px;
         }
 
-        .view-recommendations a {
+        .view-recommendations a,
+        .view-recommendations button {
             display: inline-block;
             padding: 10px 20px;
             background-color: #003366;
             color: white;
-            text-decoration: none;
+            border: none;
             border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
         }
 
-        .view-recommendations a:hover {
+        .view-recommendations a:hover,
+        .view-recommendations button:hover {
             background-color: #005599;
         }
     </style>
@@ -113,102 +119,44 @@
         <div id="results"></div>
     </div>
 
+    <div class="view-recommendations" style="margin-top: 15px;"></div>
+
+    <div style="margin-top: 40px; font-size: 14px; color: gray; text-align: center;">
+        Report prepared by <strong style="color:#003366;">Webfix</strong>
+    </div>
+
 <script>
-    let intervalId = null;
+let intervalId = null;
 
-    function analyze(manual = true) {
-        const url = document.getElementById("urlInput").value;
-        if (!url.startsWith("http")) {
-            if (manual) alert("Please enter a valid URL including http or https.");
-            return;
-        }
+function analyze(manual = true) {
+    const url = document.getElementById("urlInput").value;
+    if (!url.startsWith("http")) {
+        if (manual) alert("Please enter a valid URL including http or https.");
+        return;
+    }
 
-        fetch("/analyze", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ url: url })
-        })
-        .then(response => response.json())
-        .then(data => { 
-        
-            localStorage.setItem("webfix_analysis", JSON.stringify(data));
+    fetch("/analyze", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => { 
+        localStorage.setItem("webfix_analysis", JSON.stringify(data));
+        sessionStorage.setItem("webfix_report", JSON.stringify(data));
 
-
-            const resultDiv = document.getElementById("results");
-            resultDiv.innerHTML = `
-                <div class="section">
-                    <h2>🔹 Performance Analysis</h2>
-                    <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
-                    <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
-                    <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
-                </div>
-
-                <div class="section">
-                    <h2>🔒 Security Analysis</h2>
-                    <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
-                    <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
-                    <p><strong>Security Headers:</strong></p>
-                    <ul>
-                        ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val}</li>`).join("")}
-                    </ul>
-                </div>
-
-                <div class="section">
-                    <h2>🔍 SEO Analysis</h2>
-                    <ul>
-                        <li id="seo-title"></li>
-                        <li id="seo-description"></li>
-                        <li id="h1-count"></li>
-                        <li id="missing-alt"></li>
-                    </ul>
-                </div>
-
-                <div class="date">📅 Analysis Date: ${data.date_now}</div>
-
-                <div class="view-recommendations">
-                    <a href="/recommendations" target="_blank">View Recommendations</a>
-                   <button onclick="downloadPDF()">Download PDF Report</button>
-
-
-                </div>
-            `;
-
-            document.getElementById("seo-title").innerText = data.seo.has_title
-                ? "✔ The website has a title tag."
-                : "✖ No title tag found.";
-            document.getElementById("seo-description").innerText = data.seo.has_meta_description
-                ? "✔ Meta description is present."
-                : "✖ Meta description is missing.";
-            document.getElementById("h1-count").innerText = `📝 Number of <h1> tags found: ${data.seo.h1_tags_count}`;
-            document.getElementById("missing-alt").innerText = `🖼️ Images without alt text: ${data.seo.images_missing_alt}`;
-
-            if (manual && !intervalId) {
-                intervalId = setInterval(() => {
-                    analyze(false);
-                }, 60000);
-            }
-        });
-    function downloadPDF() {
-        const data = JSON.parse(localStorage.getItem("webfix_analysis"));
-        if (!data) {
-            alert("Please analyze a website first.");
-            return;
-        }
-
-        const element = document.createElement("div");
-        element.innerHTML = `
-            <h1 style="text-align:center;color:#003366;">Website Analysis Report</h1>
-
-            <div>
+        const resultDiv = document.getElementById("results");
+        resultDiv.innerHTML = `
+            <div class="section">
                 <h2>🔹 Performance Analysis</h2>
                 <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
                 <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
                 <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
             </div>
 
-            <div>
+            <div class="section">
                 <h2>🔒 Security Analysis</h2>
                 <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
                 <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
@@ -218,42 +166,100 @@
                 </ul>
             </div>
 
-            <div>
+            <div class="section">
                 <h2>🔍 SEO Analysis</h2>
                 <ul>
-                    <li>${data.seo.has_title ? "✔ The website has a title tag." : "✖ No title tag found."}</li>
-                    <li>${data.seo.has_meta_description ? "✔ Meta description is present." : "✖ Meta description is missing."}</li>
-                    <li>📝 Number of <h1> tags: ${data.seo.h1_tags_count}</li>
-                    <li>🖼️ Images without alt text: ${data.seo.images_missing_alt}</li>
+                    <li id="seo-title"></li>
+                    <li id="seo-description"></li>
+                    <li id="h1-count"></li>
+                    <li id="missing-alt"></li>
                 </ul>
             </div>
 
-            <div style="margin-top: 20px; color: gray;">
-                📅 Analysis Date: ${data.date_now}
-            </div>
+            <div class="date">📅 Analysis Date: ${data.date_now}</div>
 
-            <div style="margin-top: 40px; text-align:center; color:gray;">
-                Report prepared by <strong style="color:#003366;">Webfix</strong>
+            <div class="view-recommendations">
+                <a href="/recommendations" target="_blank">View Recommendations</a>
+                <button id="pdf-button">Download PDF Report</button>
+
             </div>
         `;
+document.getElementById("pdf-button").addEventListener("click", downloadPDF);
 
-        html2pdf().from(element).set({
-            margin: 1,
-            filename: 'Webfix_Report.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        }).save();
-    } 
+        document.getElementById("seo-title").innerText = data.seo.has_title
+            ? "✔ The website has a title tag."
+            : "✖ No title tag found.";
+        document.getElementById("seo-description").innerText = data.seo.has_meta_description
+            ? "✔ Meta description is present."
+            : "✖ Meta description is missing.";
+        document.getElementById("h1-count").innerText = `📝 Number of <h1> tags found: ${data.seo.h1_tags_count}`;
+        document.getElementById("missing-alt").innerText = `🖼️ Images without alt text: ${data.seo.images_missing_alt}`;
+
+        if (manual && !intervalId) {
+            intervalId = setInterval(() => {
+                analyze(false);
+            }, 60000);
+        }
+    });
+}
+
+// ✅ هذا هو زر تحميل PDF الكامل والمضمون
+function downloadPDF() {
+    const data = JSON.parse(localStorage.getItem("webfix_analysis"));
+    if (!data) {
+        alert("Please analyze a website first.");
+        return;
     }
+
+    const element = document.createElement("div");
+    element.innerHTML = `
+        <h1 style="text-align:center;color:#003366;">Website Analysis Report</h1>
+
+        <div>
+            <h2>🔹 Performance Analysis</h2>
+            <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
+            <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
+            <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
+        </div>
+
+        <div>
+            <h2>🔒 Security Analysis</h2>
+            <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
+            <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
+            <p><strong>Security Headers:</strong></p>
+            <ul>
+                ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val}</li>`).join("")}
+            </ul>
+        </div>
+
+        <div>
+            <h2>🔍 SEO Analysis</h2>
+            <ul>
+                <li>${data.seo.has_title ? "✔ The website has a title tag." : "✖ No title tag found."}</li>
+                <li>${data.seo.has_meta_description ? "✔ Meta description is present." : "✖ Meta description is missing."}</li>
+                <li>📝 Number of <h1> tags: ${data.seo.h1_tags_count}</li>
+                <li>🖼️ Images without alt text: ${data.seo.images_missing_alt}</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 20px; color: gray;">
+            📅 Analysis Date: ${data.date_now}
+        </div>
+
+        <div style="margin-top: 40px; text-align:center; color:gray;">
+            Report prepared by <strong style="color:#003366;">Webfix</strong>
+        </div>
+    `;
+
+    html2pdf().from(element).set({
+        margin: 1,
+        filename: 'Webfix_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }).save();
+}
 </script>
-
-<div class="view-recommendations" style="margin-top: 15px;">
-</div>
-
-<div style="margin-top: 40px; font-size: 14px; color: gray; text-align: center;">
-    Report prepared by <strong style="color:#003366;">Webfix</strong>
-</div>
 
 </body>
 </html>
