@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Webfix - Website Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -160,7 +161,7 @@ function analyze(manual = true) {
                 <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
                 <p><strong>Security Headers:</strong></p>
                 <ul>
-                    ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val}</li>`).join("")}
+                    ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val || "Not Set"}</li>`).join("")}
                 </ul>
             </div>
 
@@ -178,7 +179,7 @@ function analyze(manual = true) {
 
             <div class="view-recommendations">
                 <a href="/recommendations" target="_blank">View Recommendations</a>
-                <a href="/generate-pdf" target="_blank">Download PDF Report</a>
+                <button onclick="downloadPDF()">Download PDF Report</button>
             </div>
         `;
 
@@ -196,6 +197,58 @@ function analyze(manual = true) {
                 analyze(false);
             }, 60000);
         }
+    });
+}
+
+function downloadPDF() {
+    const data = JSON.parse(localStorage.getItem("webfix_analysis"));
+    if (!data) {
+        alert("Please analyze a website first.");
+        return;
+    }
+
+    const element = document.createElement("div");
+    element.innerHTML = `
+        <h1 style="text-align:center;color:#003366;">Website Analysis Report</h1>
+        <div>
+            <h2>🔹 Performance Analysis</h2>
+            <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
+            <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
+            <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
+        </div>
+        <div>
+            <h2>🔒 Security Analysis</h2>
+            <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
+            <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
+            <p><strong>Security Headers:</strong></p>
+            <ul>
+                ${Object.entries(data.security.security_headers).map(([k,v]) => `<li>${k}: ${v || "Not Set"}</li>`).join("")}
+            </ul>
+        </div>
+        <div>
+            <h2>🔍 SEO Analysis</h2>
+            <ul>
+                <li>${data.seo.has_title ? "✔ The website has a title tag." : "✖ No title tag found."}</li>
+                <li>${data.seo.has_meta_description ? "✔ Meta description is present." : "✖ Meta description is missing."}</li>
+                <li>📝 Number of <h1> tags: ${data.seo.h1_tags_count}</li>
+                <li>🖼️ Images without alt text: ${data.seo.images_missing_alt}</li>
+            </ul>
+        </div>
+        <div style="margin-top: 20px; color: gray;">📅 Analysis Date: ${data.date_now}</div>
+        <div style="margin-top: 40px; text-align:center; color:gray;">
+            Report prepared by <strong style="color:#003366;">Webfix</strong>
+        </div>
+    `;
+
+    document.body.appendChild(element);
+    html2pdf().from(element).set({
+        margin: 0.5,
+        filename: 'Webfix_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }).save().then(() => {
+        document.body.removeChild(element);
     });
 }
 </script>
