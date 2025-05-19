@@ -148,19 +148,20 @@ def recommendations():
 def report():
     return render_template('report.html')
 
-# ✅ مسار توليد PDF باحترافية من backend
 @app.route('/generate-pdf')
 def generate_pdf():
     data = session.get("report_data")
     if not data:
         return "No analysis data available.", 400
 
+    # ✅ نمرر المتغير data إلى report.html
     html = render_template("report.html", data=data)
     pdf = HTML(string=html).write_pdf()
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=Webfix_Report.pdf'
     return response
+
 
 import os
 
