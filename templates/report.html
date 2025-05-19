@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Webfix Report</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,97 +29,46 @@
             font-style: italic;
             color: gray;
         }
-
-        #download-btn {
-            margin: 20px auto;
-            display: block;
-            padding: 10px 20px;
-            background-color: #003366;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        #download-btn:hover {
-            background-color: #005599;
-        }
     </style>
 </head>
 <body>
-    <div id="report-content">
-        <h1>Website Analysis Report</h1>
+    <h1>Website Analysis Report</h1>
 
-        <div id="performance" class="section"></div>
-        <div id="security" class="section"></div>
-        <div id="seo" class="section"></div>
-        <div class="section" id="date"></div>
-
-        <div class="signature">
-            Report prepared by <strong style="color:#003366;">Webfix</strong>
-        </div>
+    <div class="section">
+        <h2>🔹 Performance Analysis</h2>
+        <p><strong>Load Time:</strong> {{ data.performance.load_time }} seconds</p>
+        <p><strong>Status Code:</strong> {{ data.performance.status_code }}</p>
+        <p><strong>Page Size:</strong> {{ data.performance.page_size_kb }} KB</p>
     </div>
 
-    <button id="download-btn">Download PDF</button>
+    <div class="section">
+        <h2>🔒 Security Analysis</h2>
+        <p><strong>HTTPS:</strong> {{ 'Yes' if data.security.uses_https else 'No' }}</p>
+        <p><strong>SSL Valid:</strong> {{ 'Yes' if data.security.ssl_valid else 'No' }}</p>
+        <p><strong>Security Headers:</strong></p>
+        <ul>
+            {% for key, val in data.security.security_headers.items() %}
+                <li>{{ key }}: {{ val or 'Not Set' }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 
-    <script>
-    const data = JSON.parse(sessionStorage.getItem("webfix_report"));
+    <div class="section">
+        <h2>🔍 SEO Analysis</h2>
+        <ul>
+            <li>{{ '✔ The website has a title tag.' if data.seo.has_title else '✖ No title tag found.' }}</li>
+            <li>{{ '✔ Meta description is present.' if data.seo.has_meta_description else '✖ Meta description is missing.' }}</li>
+            <li>📝 Number of &lt;h1&gt; tags: {{ data.seo.h1_tags_count }}</li>
+            <li>🖼️ Images without alt text: {{ data.seo.images_missing_alt }}</li>
+        </ul>
+    </div>
 
+    <div class="section">
+        📅 Analysis Date: {{ data.date_now }}
+    </div>
 
-
-        if (data) {
-            document.getElementById("performance").innerHTML = `
-                <h2>🔹 Performance Analysis</h2>
-                <p><strong>Load Time:</strong> ${data.performance.load_time} seconds</p>
-                <p><strong>Status Code:</strong> ${data.performance.status_code}</p>
-                <p><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</p>
-            `;
-
-            document.getElementById("security").innerHTML = `
-                <h2>🔒 Security Analysis</h2>
-                <p><strong>HTTPS:</strong> ${data.security.uses_https ? 'Yes' : 'No'}</p>
-                <p><strong>SSL Valid:</strong> ${data.security.ssl_valid ? 'Yes' : 'No'}</p>
-                <p><strong>Security Headers:</strong></p>
-                <ul>
-                    ${Object.entries(data.security.security_headers).map(([key, val]) => `<li>${key}: ${val}</li>`).join("")}
-                </ul>
-            `;
-
-            document.getElementById("seo").innerHTML = `
-                <h2>🔍 SEO Analysis</h2>
-                <ul>
-                    <li>${data.seo.has_title ? "✔ The website has a title tag." : "✖ No title tag found."}</li>
-                    <li>${data.seo.has_meta_description ? "✔ Meta description is present." : "✖ Meta description is missing."}</li>
-                    <li>📝 Number of &lt;h1&gt; tags: ${data.seo.h1_tags_count}</li>
-                    <li>🖼️ Images without alt text: ${data.seo.images_missing_alt}</li>
-                </ul>
-            `;
-
-            document.getElementById("date").innerHTML = `
-                📅 Analysis Date: ${data.date_now}
-            `;
-        } else {
-            document.getElementById("report-content").innerHTML = `
-                <h2 style="text-align:center;color:#c00;">No report data found.</h2>
-                <p style="text-align:center;">Please analyze a website first.</p>
-            `;
-        }
-
-        document.getElementById("download-btn").addEventListener("click", () => {
-    const element = document.getElementById("report-content");
-
-    // ✅ تأخير بسيط عشان يضمن تحميل كل البيانات
-    setTimeout(() => {
-        html2pdf().from(element).set({
-            margin: 1,
-            filename: 'Webfix_Report.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        }).save();
-    }, 500); // نصف ثانية تأخير
-});
-
-    </script>
+    <div class="signature">
+        Report prepared by <strong style="color:#003366;">Webfix</strong>
+    </div>
 </body>
 </html>
